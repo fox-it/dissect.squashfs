@@ -167,7 +167,7 @@ class SquashFS:
     @lru_cache(1024)
     def _lookup_inode(self, inode_number: int) -> INode:
         if inode_number <= 0 or inode_number > self.sb.inodes:
-            raise IndexError(f"INode number out of bounds (1, {self.sb.inodes}): {inode_number}")
+            raise IndexError(f"inode number out of bounds (1, {self.sb.inodes}): {inode_number}")
         block, offset = divmod((inode_number - 1) * 8, c_squashfs.SQUASHFS_METADATA_SIZE)
         _, _, data = self._read_metadata(self.lookup_table[block], offset, 8)
         return self.get(struct.unpack("<Q", data)[0])
@@ -405,7 +405,6 @@ class FileStream(RunlistStream):
                 # We somehow requested more data than we have runs for
                 break
 
-            # run_block_offset, run_block_count = self.runlist[run_idx]
             run_block_size, run_block_count = self.runlist[run_idx]
 
             # For squashfs we use 0 to indicate a sparse block and None to indicate a fragment
