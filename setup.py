@@ -7,4 +7,11 @@ setup(
         "dissect.cstruct>=3.0.dev,<4.0.dev",
         "dissect.util>=3.0.dev,<4.0.dev",
     ],
+    extras_require={
+        "full": [
+            "lz4",
+            "python-lzo",
+            "zstandard",
+        ]
+    },
 )

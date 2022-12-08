@@ -66,6 +66,7 @@ def _verify_filesystem(sqfs):
         # ("lzma_sqfs", c_squashfs.LZMA_COMPRESSION),
         ("lzo_sqfs", c_squashfs.LZO_COMPRESSION),
         ("xz_sqfs", c_squashfs.XZ_COMPRESSION),
+        ("zstd_sqfs", c_squashfs.ZSTD_COMPRESSION),
     ],
 )
 def test_squashfs(sqfs, compression_id, request):
