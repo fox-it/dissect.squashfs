@@ -5,7 +5,7 @@ import struct
 from bisect import bisect_right
 from datetime import datetime
 from functools import cache, cached_property, lru_cache
-from typing import BinaryIO, Iterator, Optional
+from typing import BinaryIO, Iterator, Optional, Union
 
 from dissect.cstruct import Instance
 from dissect.util import ts
@@ -68,7 +68,7 @@ class SquashFS:
         # squashfs inode numbers consist of a block number and offset in that block
         return INode(self, block, offset, name, type, inode_number, parent)
 
-    def get(self, path, node=None):
+    def get(self, path: Union[str, int], node: Optional[INode] = None) -> INode:
         if isinstance(path, int):
             return self.inode(path >> 16, path & 0xFFFF)
 
@@ -109,7 +109,7 @@ class SquashFS:
         self.fh.seek(offset)
         return c_squashfs.uint64[num_blocks](self.fh)
 
-    def _read_metadata(self, block: int, offset: int, length: int) -> bytes:
+    def _read_metadata(self, block: int, offset: int, length: int) -> tuple[int, int, bytes]:
         result = []
         while length:
             next_block, data = self._read_block(block)
@@ -128,7 +128,7 @@ class SquashFS:
         return block, offset, b"".join(result)
 
     @lru_cache(1024)
-    def _read_block(self, block: int, length: int = None) -> tuple[int, bytes]:
+    def _read_block(self, block: int, length: Optional[int] = None) -> tuple[int, bytes]:
         if length is not None:
             # Data block
             compressed = length & c_squashfs.SQUASHFS_COMPRESSED_BIT_BLOCK == 0
@@ -388,7 +388,7 @@ class FileStream(RunlistStream):
         self.fragment_offset = inode.header.offset
 
     def _read(self, offset: int, length: int) -> bytes:
-        r = []
+        result = []
 
         block_offset = offset // self.block_size
 
@@ -409,7 +409,7 @@ class FileStream(RunlistStream):
 
             # For squashfs we use 0 to indicate a sparse block and None to indicate a fragment
             if run_block_size is None:
-                r.append(self.fs._read_fragment(self.fragment, self.fragment_offset, run_block_count))
+                result.append(self.fs._read_fragment(self.fragment, self.fragment_offset, run_block_count))
                 offset += run_block_count
                 length -= run_block_count
             else:
@@ -425,13 +425,13 @@ class FileStream(RunlistStream):
 
                 # Sparse run
                 if run_block_size == 0:
-                    r.append(b"\x00" * read_count)
+                    result.append(b"\x00" * read_count)
                 else:
                     start_block, data = self.fs._read_block(start_block, run_block_size)
-                    r.append(data[:read_count])
+                    result.append(data[:read_count])
 
                 offset += read_count
                 length -= read_count
                 run_idx += 1
 
-        return b"".join(r)
+        return b"".join(result)
