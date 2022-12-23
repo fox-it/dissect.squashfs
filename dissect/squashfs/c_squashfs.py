@@ -68,7 +68,7 @@ typedef long long squashfs_inode;
 struct squashfs_super_block {
     unsigned int        s_magic;
     unsigned int        inodes;
-    unsigned int        mkfs_time;                  /* time of filesystem creation */
+    unsigned int        mkfs_time;
     unsigned int        block_size;
     unsigned int        fragments;
     unsigned short      compression;
@@ -102,7 +102,7 @@ struct squashfs_super_block_3 {
     unsigned int        flags : 8;
     unsigned int        no_uids : 8;
     unsigned int        no_guids : 8;
-    int                 mkfs_time;                   /* time of filesystem creation */
+    int                 mkfs_time;
     squashfs_inode      root_inode;
     unsigned int        block_size;
     unsigned int        fragments;
