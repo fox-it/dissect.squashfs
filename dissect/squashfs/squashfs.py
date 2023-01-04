@@ -60,10 +60,10 @@ class SquashFS:
         self,
         block: int,
         offset: int,
-        name: str = None,
-        type: int = None,
-        inode_number: int = None,
-        parent: INode = None,
+        name: Optional[str] = None,
+        type: Optional[int] = None,
+        inode_number: Optional[int] = None,
+        parent: Optional[INode] = None,
     ) -> INode:
         # squashfs inode numbers consist of a block number and offset in that block
         return INode(self, block, offset, name, type, inode_number, parent)
@@ -192,10 +192,10 @@ class INode:
         fs: SquashFS,
         block: int,
         offset: int,
-        name: str = None,
-        type: int = None,
-        inode_number: int = None,
-        parent: INode = None,
+        name: Optional[str] = None,
+        type: Optional[int] = None,
+        inode_number: Optional[int] = None,
+        parent: Optional[INode] = None,
     ):
         self.fs = fs
         self.block = block
