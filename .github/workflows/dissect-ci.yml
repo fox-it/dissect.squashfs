@@ -3,5 +3,7 @@ on: [push, pull_request, workflow_dispatch]
 
 jobs: 
   ci:
-    uses: fox-it/dissect-workflow-templates/.github/workflows/dissect-ci-template-self-hosted.yml@main
+    uses: fox-it/dissect-workflow-templates/.github/workflows/dissect-ci-template.yml@main
+    with:
+      deb-packages: 'liblzo2-dev'
     secrets: inherit
