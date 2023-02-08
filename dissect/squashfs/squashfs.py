@@ -1,3 +1,7 @@
+# References:
+# - https://dr-emann.github.io/squashfs/
+# - Linux kernel
+
 from __future__ import annotations
 
 import stat
