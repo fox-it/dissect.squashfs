@@ -208,6 +208,8 @@ class INode:
         self._type = type
         self._inode_number = inode_number
         self.parent = parent
+        self._data_block = None
+        self._data_offset = None
 
     def __repr__(self) -> str:
         return f"<inode {self.inode_number} ({self.block}, {self.offset})>"
@@ -217,16 +219,19 @@ class INode:
         base_struct = c_squashfs.squashfs_base_inode_header
 
         block = self.fs.sb.inode_table_start + self.block
-        _, _, data = self.fs._read_metadata(block, self.offset, len(base_struct))
+        data_block, data_offset, data = self.fs._read_metadata(block, self.offset, len(base_struct))
 
         header = base_struct(data)
         actual_struct = INODE_STRUCT_MAP.get(header.inode_type)
 
         if len(actual_struct) != len(base_struct):
-            _, _, data = self.fs._read_metadata(block, self.offset, len(actual_struct))
+            data_block, data_offset, data = self.fs._read_metadata(block, self.offset, len(actual_struct))
 
         if actual_struct != base_struct:
             header = actual_struct(data)
+
+        self._data_block = data_block
+        self._data_offset = data_offset
 
         return header
 
@@ -298,8 +303,8 @@ class INode:
             raise NotASymlinkError(f"{self!r} is not a symlink")
 
         _, _, data = self.fs._read_metadata(
-            self.fs.sb.inode_table_start + self.block,
-            self.offset + len(self.header),
+            self._data_block,
+            self._data_offset,
             self.header.symlink_size,
         )
         return data.decode(errors="surrogateescape")
@@ -362,8 +367,8 @@ class INode:
 
         if blocks:
             _, _, data = self.fs._read_metadata(
-                self.fs.sb.inode_table_start + self.block,
-                self.offset + len(self.header),
+                self._data_block,
+                self._data_offset,
                 blocks * 4,
             )
             block_list = [(block, 1) for block in c_squashfs.uint32[blocks](data)]
