@@ -235,6 +235,18 @@ class INode:
 
         return header
 
+    @cached_property
+    def data_block(self) -> int:
+        if not self._data_block:
+            self.header  # This will set self._data_block
+        return self._data_block
+
+    @cached_property
+    def data_offset(self) -> int:
+        if not self._data_offset:
+            self.header  # This will set self._data_offset
+        return self._data_offset
+
     @property
     def inode_number(self) -> int:
         return self._inode_number or self.header.inode_number
@@ -303,8 +315,8 @@ class INode:
             raise NotASymlinkError(f"{self!r} is not a symlink")
 
         _, _, data = self.fs._read_metadata(
-            self._data_block,
-            self._data_offset,
+            self.data_block,
+            self.data_offset,
             self.header.symlink_size,
         )
         return data.decode(errors="surrogateescape")
@@ -367,8 +379,8 @@ class INode:
 
         if blocks:
             _, _, data = self.fs._read_metadata(
-                self._data_block,
-                self._data_offset,
+                self.data_block,
+                self.data_offset,
                 blocks * 4,
             )
             block_list = [(block, 1) for block in c_squashfs.uint32[blocks](data)]
