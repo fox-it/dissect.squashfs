@@ -234,6 +234,11 @@ class INode:
         return header, data_block, data_offset
 
     @cached_property
+    def header(self) -> Instance:
+        header, _, _ = self._metadata()
+        return header
+
+    @cached_property
     def data_block(self) -> int:
         _, data_block, _ = self._metadata()
         return data_block
@@ -242,11 +247,6 @@ class INode:
     def data_offset(self) -> int:
         _, _, data_offset = self._metadata()
         return data_offset
-
-    @cached_property
-    def header(self) -> Instance:
-        header, _, _ = self._metadata()
-        return header
 
     @property
     def inode_number(self) -> int:
