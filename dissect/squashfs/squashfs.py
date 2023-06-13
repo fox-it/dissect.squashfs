@@ -208,14 +208,11 @@ class INode:
         self._type = type
         self._inode_number = inode_number
         self.parent = parent
-        self._data_block = None
-        self._data_offset = None
 
     def __repr__(self) -> str:
         return f"<inode {self.inode_number} ({self.block}, {self.offset})>"
 
-    @cached_property
-    def header(self) -> Instance:
+    def _metadata(self) -> tuple[Instance, int, int]:
         base_struct = c_squashfs.squashfs_base_inode_header
 
         block = self.fs.sb.inode_table_start + self.block
@@ -230,22 +227,26 @@ class INode:
         if actual_struct != base_struct:
             header = actual_struct(data)
 
-        self._data_block = data_block
-        self._data_offset = data_offset
+        self.header = header
+        self.data_block = data_block
+        self.data_offset = data_offset
 
-        return header
+        return header, data_block, data_offset
 
     @cached_property
     def data_block(self) -> int:
-        if not self._data_block:
-            self.header  # This will set self._data_block
-        return self._data_block
+        _, data_block, _ = self._metadata()
+        return data_block
 
     @cached_property
     def data_offset(self) -> int:
-        if not self._data_offset:
-            self.header  # This will set self._data_offset
-        return self._data_offset
+        _, _, data_offset = self._metadata()
+        return data_offset
+
+    @cached_property
+    def header(self) -> Instance:
+        header, _, _ = self._metadata()
+        return header
 
     @property
     def inode_number(self) -> int:
