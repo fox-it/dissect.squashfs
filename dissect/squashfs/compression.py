@@ -25,7 +25,7 @@ def initialize(id: int, options: Optional[bytes]) -> Compression:
                 pass
         else:
             raise ImportError(f"No modules available ({modules[id]})")
-    except ImportError:
+    except (AttributeError, ImportError):
         raise ValueError(f"Compression ID {id} requested but module ({modules[id]}) is not available")
     except KeyError:
         raise NotImplementedError(f"Unsupported compression ID: {id}")
