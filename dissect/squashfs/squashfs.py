@@ -29,6 +29,11 @@ class SquashFS:
     def __init__(self, fh: BinaryIO):
         self.fh = fh
 
+        self._read_block = lru_cache(1024)(self._read_block)
+        self._lookup_id = lru_cache(1024)(self._lookup_id)
+        self._lookup_inode = lru_cache(1024)(self._lookup_inode)
+        self._lookup_fragment = lru_cache(1024)(self._lookup_fragment)
+
         sb = c_squashfs.squashfs_super_block(fh)
         if sb.s_magic != c_squashfs.SQUASHFS_MAGIC:
             raise ValueError("Invalid squashfs superblock")
@@ -131,7 +136,6 @@ class SquashFS:
 
         return block, offset, b"".join(result)
 
-    @lru_cache(1024)
     def _read_block(self, block: int, length: Optional[int] = None) -> tuple[int, bytes]:
         if length is not None:
             # Data block
@@ -162,13 +166,11 @@ class SquashFS:
         _, data = self._read_block(entry.start_block, entry.size)
         return data[offset : offset + length]
 
-    @lru_cache(1024)
     def _lookup_id(self, id: int) -> int:
         block, offset = divmod(id * 4, c_squashfs.SQUASHFS_METADATA_SIZE)
         _, _, data = self._read_metadata(self.id_table[block], offset, 4)
         return struct.unpack("<I", data)[0]
 
-    @lru_cache(1024)
     def _lookup_inode(self, inode_number: int) -> INode:
         if inode_number <= 0 or inode_number > self.sb.inodes:
             raise IndexError(f"inode number out of bounds (1, {self.sb.inodes}): {inode_number}")
@@ -176,7 +178,6 @@ class SquashFS:
         _, _, data = self._read_metadata(self.lookup_table[block], offset, 8)
         return self.get(struct.unpack("<Q", data)[0])
 
-    @lru_cache(1024)
     def _lookup_fragment(self, fragment: int) -> bytes:
         fragment_offset = fragment * len(c_squashfs.squashfs_fragment_entry)
         block, offset = divmod(fragment_offset, c_squashfs.SQUASHFS_METADATA_SIZE)
