@@ -29,11 +29,6 @@ class SquashFS:
     def __init__(self, fh: BinaryIO):
         self.fh = fh
 
-        self._read_block = lru_cache(1024)(self._read_block)
-        self._lookup_id = lru_cache(1024)(self._lookup_id)
-        self._lookup_inode = lru_cache(1024)(self._lookup_inode)
-        self._lookup_fragment = lru_cache(1024)(self._lookup_fragment)
-
         sb = c_squashfs.squashfs_super_block(fh)
         if sb.s_magic != c_squashfs.SQUASHFS_MAGIC:
             raise ValueError("Invalid squashfs superblock")
@@ -50,6 +45,11 @@ class SquashFS:
         self.major = self.sb.s_major
         self.minor = self.sb.s_minor
         self.size = self.sb.bytes_used
+
+        self._read_block = lru_cache(1024)(self._read_block)
+        self._lookup_id = lru_cache(1024)(self._lookup_id)
+        self._lookup_inode = lru_cache(1024)(self._lookup_inode)
+        self._lookup_fragment = lru_cache(1024)(self._lookup_fragment)
 
         self._compression_options = None
         if (self.sb.flags >> c_squashfs.SQUASHFS_COMP_OPT) & 1:
