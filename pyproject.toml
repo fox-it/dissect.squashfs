@@ -38,7 +38,7 @@ repository = "https://github.com/fox-it/dissect.squashfs"
 [project.optional-dependencies]
 full = [
     "lz4",
-    "python-lzo",
+    "python-lzo; platform_system != 'Windows' or platform_python_implementation != 'PyPy'",
     "zstandard",
 ]
 
