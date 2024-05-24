@@ -11,7 +11,6 @@ from datetime import datetime
 from functools import cache, cached_property, lru_cache
 from typing import BinaryIO, Iterator, Optional, Union
 
-from dissect.cstruct import Instance
 from dissect.util import ts
 from dissect.util.stream import RunlistStream
 
@@ -213,7 +212,27 @@ class INode:
     def __repr__(self) -> str:
         return f"<inode {self.inode_number} ({self.block}, {self.offset})>"
 
-    def _metadata(self) -> tuple[Instance, int, int]:
+    def _metadata(
+        self,
+    ) -> tuple[
+        c_squashfs.squashfs_base_inode_header
+        | c_squashfs.squashfs_dir_inode_header
+        | c_squashfs.squashfs_reg_inode_header
+        | c_squashfs.squashfs_symlink_inode_header
+        | c_squashfs.squashfs_dev_inode_header
+        | c_squashfs.squashfs_dev_inode_header
+        | c_squashfs.squashfs_base_inode_header
+        | c_squashfs.squashfs_base_inode_header
+        | c_squashfs.squashfs_ldir_inode_header
+        | c_squashfs.squashfs_lreg_inode_header
+        | c_squashfs.squashfs_symlink_inode_header
+        | c_squashfs.squashfs_ldev_inode_header
+        | c_squashfs.squashfs_ldev_inode_header
+        | c_squashfs.squashfs_lipc_inode_header
+        | c_squashfs.squashfs_lipc_inode_header,
+        int,
+        int,
+    ]:
         base_struct = c_squashfs.squashfs_base_inode_header
 
         block = self.fs.sb.inode_table_start + self.block
@@ -235,7 +254,25 @@ class INode:
         return header, data_block, data_offset
 
     @cached_property
-    def header(self) -> Instance:
+    def header(
+        self,
+    ) -> (
+        c_squashfs.squashfs_base_inode_header
+        | c_squashfs.squashfs_dir_inode_header
+        | c_squashfs.squashfs_reg_inode_header
+        | c_squashfs.squashfs_symlink_inode_header
+        | c_squashfs.squashfs_dev_inode_header
+        | c_squashfs.squashfs_dev_inode_header
+        | c_squashfs.squashfs_base_inode_header
+        | c_squashfs.squashfs_base_inode_header
+        | c_squashfs.squashfs_ldir_inode_header
+        | c_squashfs.squashfs_lreg_inode_header
+        | c_squashfs.squashfs_symlink_inode_header
+        | c_squashfs.squashfs_ldev_inode_header
+        | c_squashfs.squashfs_ldev_inode_header
+        | c_squashfs.squashfs_lipc_inode_header
+        | c_squashfs.squashfs_lipc_inode_header
+    ):
         header, _, _ = self._metadata()
         return header
 
