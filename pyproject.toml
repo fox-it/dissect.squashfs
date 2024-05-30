@@ -25,8 +25,8 @@ classifiers = [
   "Topic :: Utilities",
 ]
 dependencies = [
-    "dissect.cstruct>3,<5",
-    "dissect.util>2,<4",
+    "dissect.cstruct>=4.dev,<5",
+    "dissect.util>=3,<4",
 ]
 dynamic = ["version"]
 
@@ -42,6 +42,11 @@ full = [
     # So we use a pure python fallback for it.
     "python-lzo; platform_system != 'Windows' or platform_python_implementation != 'PyPy'",
     "zstandard",
+]
+dev = [
+    "dissect.squashfs[full]",
+    "dissect.cstruct>=4.0.dev,<5.0.dev",
+    "dissect.util>=3.0.dev,<4.0.dev",
 ]
 
 [tool.black]
