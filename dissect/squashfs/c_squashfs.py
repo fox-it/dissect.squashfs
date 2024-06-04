@@ -1,6 +1,6 @@
 import stat
 
-from dissect import cstruct
+from dissect.cstruct import cstruct
 
 squashfs_def = """
 #define SQUASHFS_MAGIC  0x73717368
@@ -319,8 +319,7 @@ struct zstd_comp_opts {
 };
 """
 
-c_squashfs = cstruct.cstruct()
-c_squashfs.load(squashfs_def)
+c_squashfs = cstruct().load(squashfs_def)
 
 INODE_STRUCT_MAP = {
     c_squashfs.SQUASHFS_DIR_TYPE: c_squashfs.squashfs_dir_inode_header,
