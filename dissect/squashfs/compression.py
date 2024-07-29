@@ -11,9 +11,9 @@ def initialize(id: int, options: Optional[bytes]) -> Compression:
     modules = {
         c_squashfs.ZLIB_COMPRESSION: (NativeZlib,),
         c_squashfs.LZMA_COMPRESSION: (NativeLZMA,),
-        c_squashfs.LZO_COMPRESSION: (NativeLZO, PythonLZO),
+        c_squashfs.LZO_COMPRESSION: (AvailableLZO,),
         c_squashfs.XZ_COMPRESSION: (NativeXZ,),
-        c_squashfs.LZ4_COMPRESSION: (NativeLZ4, PythonLZ4),
+        c_squashfs.LZ4_COMPRESSION: (AvailableLZ4,),
         c_squashfs.ZSTD_COMPRESSION: (NativeZSTD,),
     }
 
@@ -60,14 +60,7 @@ class NativeLZMA(Compression):
         return self._module.decompress(data)
 
 
-class NativeLZO(Compression):
-    module = "lzo"
-
-    def decompress(self, data: bytes, expected: int) -> bytes:
-        return self._module.decompress(data, False, expected)
-
-
-class PythonLZO(Compression):
+class AvailableLZO(Compression):
     module = "dissect.util.compression.lzo"
 
     def decompress(self, data: bytes, expected: int) -> bytes:
@@ -81,18 +74,11 @@ class NativeXZ(Compression):
         return self._module.decompress(data)
 
 
-class NativeLZ4(Compression):
-    module = "lz4.block"
-
-    def decompress(self, data: bytes, expected: int) -> bytes:
-        return self._module.decompress(data, expected)
-
-
-class PythonLZ4(Compression):
+class AvailableLZ4(Compression):
     module = "dissect.util.compression.lz4"
 
     def decompress(self, data: bytes, expected: int) -> bytes:
-        return self._module.decompress(data)
+        return self._module.decompress(data, uncompressed_size=expected)
 
 
 class NativeZSTD(Compression):
