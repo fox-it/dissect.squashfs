@@ -7,9 +7,8 @@ from __future__ import annotations
 import stat
 import struct
 from bisect import bisect_right
-from datetime import datetime
 from functools import cache, cached_property, lru_cache
-from typing import BinaryIO, Iterator, Optional, Union
+from typing import TYPE_CHECKING, BinaryIO
 
 from dissect.util import ts
 from dissect.util.stream import RunlistStream
@@ -22,6 +21,10 @@ from dissect.squashfs.exceptions import (
     NotAFileError,
     NotASymlinkError,
 )
+
+if TYPE_CHECKING:
+    from collections.abc import Iterator
+    from datetime import datetime
 
 
 class SquashFS:
@@ -68,15 +71,15 @@ class SquashFS:
         self,
         block: int,
         offset: int,
-        name: Optional[str] = None,
-        type: Optional[int] = None,
-        inode_number: Optional[int] = None,
-        parent: Optional[INode] = None,
+        name: str | None = None,
+        type: int | None = None,
+        inode_number: int | None = None,
+        parent: INode | None = None,
     ) -> INode:
         # squashfs inode numbers consist of a block number and offset in that block
         return INode(self, block, offset, name, type, inode_number, parent)
 
-    def get(self, path: Union[str, int], node: Optional[INode] = None) -> INode:
+    def get(self, path: str | int, node: INode | None = None) -> INode:
         if isinstance(path, int):
             return self.inode(path >> 16, path & 0xFFFF)
 
@@ -135,7 +138,7 @@ class SquashFS:
 
         return block, offset, b"".join(result)
 
-    def _read_block(self, block: int, length: Optional[int] = None) -> tuple[int, bytes]:
+    def _read_block(self, block: int, length: int | None = None) -> tuple[int, bytes]:
         if length is not None:
             # Data block
             compressed = length & c_squashfs.SQUASHFS_COMPRESSED_BIT_BLOCK == 0
@@ -177,13 +180,12 @@ class SquashFS:
         _, _, data = self._read_metadata(self.lookup_table[block], offset, 8)
         return self.get(struct.unpack("<Q", data)[0])
 
-    def _lookup_fragment(self, fragment: int) -> bytes:
+    def _lookup_fragment(self, fragment: int) -> c_squashfs.squashfs_fragment_entry:
         fragment_offset = fragment * len(c_squashfs.squashfs_fragment_entry)
         block, offset = divmod(fragment_offset, c_squashfs.SQUASHFS_METADATA_SIZE)
 
         _, _, data = self._read_metadata(self.fragment_table[block], offset, len(c_squashfs.squashfs_fragment_entry))
-        entry = c_squashfs.squashfs_fragment_entry(data)
-        return entry
+        return c_squashfs.squashfs_fragment_entry(data)
 
     def iter_inodes(self) -> Iterator[INode]:
         for inum in range(1, self.sb.inodes + 1):
@@ -196,10 +198,10 @@ class INode:
         fs: SquashFS,
         block: int,
         offset: int,
-        name: Optional[str] = None,
-        type: Optional[int] = None,
-        inode_number: Optional[int] = None,
-        parent: Optional[INode] = None,
+        name: str | None = None,
+        type: int | None = None,
+        inode_number: int | None = None,
+        parent: INode | None = None,
     ):
         self.fs = fs
         self.block = block
@@ -208,6 +210,8 @@ class INode:
         self._type = type
         self._inode_number = inode_number
         self.parent = parent
+
+        self.listdir = cache(self.listdir)
 
     def __repr__(self) -> str:
         return f"<inode {self.inode_number} ({self.block}, {self.offset})>"
@@ -220,15 +224,9 @@ class INode:
         | c_squashfs.squashfs_reg_inode_header
         | c_squashfs.squashfs_symlink_inode_header
         | c_squashfs.squashfs_dev_inode_header
-        | c_squashfs.squashfs_dev_inode_header
-        | c_squashfs.squashfs_base_inode_header
-        | c_squashfs.squashfs_base_inode_header
         | c_squashfs.squashfs_ldir_inode_header
         | c_squashfs.squashfs_lreg_inode_header
-        | c_squashfs.squashfs_symlink_inode_header
         | c_squashfs.squashfs_ldev_inode_header
-        | c_squashfs.squashfs_ldev_inode_header
-        | c_squashfs.squashfs_lipc_inode_header
         | c_squashfs.squashfs_lipc_inode_header,
         int,
         int,
@@ -262,15 +260,9 @@ class INode:
         | c_squashfs.squashfs_reg_inode_header
         | c_squashfs.squashfs_symlink_inode_header
         | c_squashfs.squashfs_dev_inode_header
-        | c_squashfs.squashfs_dev_inode_header
-        | c_squashfs.squashfs_base_inode_header
-        | c_squashfs.squashfs_base_inode_header
         | c_squashfs.squashfs_ldir_inode_header
         | c_squashfs.squashfs_lreg_inode_header
-        | c_squashfs.squashfs_symlink_inode_header
         | c_squashfs.squashfs_ldev_inode_header
-        | c_squashfs.squashfs_ldev_inode_header
-        | c_squashfs.squashfs_lipc_inode_header
         | c_squashfs.squashfs_lipc_inode_header
     ):
         header, _, _ = self._metadata()
@@ -315,11 +307,12 @@ class INode:
         return ts.from_unix(self.header.mtime)
 
     @property
-    def size(self) -> Optional[int]:
+    def size(self) -> int | None:
         if self.is_dir() or self.is_file():
             return self.header.file_size
-        elif self.is_symlink():
+        if self.is_symlink():
             return self.header.symlink_size
+        return None
 
     def is_dir(self) -> bool:
         return self.type == stat.S_IFDIR
@@ -363,13 +356,9 @@ class INode:
     @cached_property
     def link_inode(self) -> INode:
         link = self.link
-        if link.startswith("/"):
-            relnode = None
-        else:
-            relnode = self.parent
+        relnode = None if link.startswith("/") else self.parent
         return self.fs.get(self.link, relnode)
 
-    @cache
     def listdir(self) -> dict[str, INode]:
         return {inode.name: inode for inode in self.iterdir()}
 
@@ -407,7 +396,7 @@ class INode:
                 )
 
     @cached_property
-    def block_list(self) -> list[tuple[Optional[int], int]]:
+    def block_list(self) -> list[tuple[int | None, int]]:
         fragment = self.header.fragment
         file_size = self.header.file_size
         if fragment == c_squashfs.SQUASHFS_INVALID_FRAG:

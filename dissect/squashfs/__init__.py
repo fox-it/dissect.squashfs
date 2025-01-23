@@ -10,10 +10,10 @@ from dissect.squashfs.squashfs import FileStream, INode, SquashFS
 __all__ = [
     "Error",
     "FileNotFoundError",
+    "FileStream",
+    "INode",
     "NotADirectoryError",
     "NotAFileError",
     "NotASymlinkError",
-    "FileStream",
-    "INode",
     "SquashFS",
 ]

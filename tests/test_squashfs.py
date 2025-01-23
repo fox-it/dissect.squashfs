@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import pytest
 
 from dissect.squashfs.c_squashfs import c_squashfs
@@ -9,7 +11,7 @@ from dissect.squashfs.exceptions import (
 from dissect.squashfs.squashfs import SquashFS
 
 
-def _verify_filesystem(sqfs):
+def _verify_filesystem(sqfs: SquashFS) -> None:
     assert sqfs.root.is_dir()
     assert sorted(sqfs.root.listdir().keys()) == [
         "dir",
@@ -52,11 +54,11 @@ def _verify_filesystem(sqfs):
         sqfs.get("small-file").listdir()
 
     with pytest.raises(NotASymlinkError):
-        sqfs.get("large-file").link
+        assert sqfs.get("large-file").link
 
 
 @pytest.mark.parametrize(
-    "sqfs,compression_id",
+    ("sqfs", "compression_id"),
     [
         ("gzip_sqfs", c_squashfs.ZLIB_COMPRESSION),
         ("gzip_opts_sqfs", c_squashfs.ZLIB_COMPRESSION),
@@ -69,7 +71,7 @@ def _verify_filesystem(sqfs):
         ("zstd_sqfs", c_squashfs.ZSTD_COMPRESSION),
     ],
 )
-def test_squashfs(sqfs, compression_id, request):
+def test_squashfs(sqfs: str, compression_id: int, request: pytest.FixtureRequest) -> None:
     sqfs = SquashFS(request.getfixturevalue(sqfs))
     assert sqfs.sb.compression == compression_id
     _verify_filesystem(sqfs)
