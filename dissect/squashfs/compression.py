@@ -1,12 +1,11 @@
 from __future__ import annotations
 
 import importlib
-from typing import Optional
 
 from dissect.squashfs.c_squashfs import c_squashfs
 
 
-def initialize(id: int, options: Optional[bytes]) -> Compression:
+def initialize(id: int, options: bytes | None) -> Compression:
     # Options have no effect on decompression, so ignore for now
     modules = {
         c_squashfs.ZLIB_COMPRESSION: (NativeZlib,),
@@ -21,10 +20,10 @@ def initialize(id: int, options: Optional[bytes]) -> Compression:
         for mod in modules[id]:
             try:
                 return mod()
-            except ModuleNotFoundError:
+            except ModuleNotFoundError:  # noqa: PERF203
                 pass
         else:
-            raise ImportError(f"No modules available ({modules[id]})")
+            raise ImportError(f"No modules available ({modules[id]})")  # noqa: TRY301
     except ImportError:
         raise ValueError(f"Compression ID {id} requested but module ({modules[id]}) is not available")
     except KeyError:
@@ -38,10 +37,10 @@ class Compression:
         self._module = importlib.import_module(self.module)
 
     def compress(self, data: bytes) -> bytes:
-        raise NotImplementedError()
+        raise NotImplementedError
 
     def decompress(self, data: bytes, expected: int) -> bytes:
-        raise NotImplementedError()
+        raise NotImplementedError
 
 
 class NativeZlib(Compression):
