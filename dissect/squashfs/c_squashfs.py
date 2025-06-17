@@ -5,8 +5,8 @@ import stat
 from dissect.cstruct import cstruct
 
 squashfs_def = """
-#define SQUASHFS_MAGIC  0x73717368
-#define CIGAM_SFHSAUQS  0x68737173
+#define SQUASHFS_MAGIC          0x73717368
+#define SQUASHFS_MAGIC_SWAP     0x68737173
 
 /* size of metadata (inode and directory) blocks */
 #define SQUASHFS_METADATA_SIZE  8192
