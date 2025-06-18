@@ -1,3 +1,5 @@
+project = "dissect.squashfs"
+
 extensions = [
     "autoapi.extension",
     "sphinx.ext.autodoc",
