@@ -26,34 +26,34 @@ def open_file_gz(name: str, mode: str = "rb") -> Iterator[BinaryIO]:
 
 @pytest.fixture
 def gzip_sqfs() -> Iterator[BinaryIO]:
-    yield from open_file("data/gzip.sqfs")
+    yield from open_file("_data/gzip.sqfs")
 
 
 @pytest.fixture
 def gzip_opts_sqfs() -> Iterator[BinaryIO]:
-    yield from open_file("data/gzip-opts.sqfs")
+    yield from open_file("_data/gzip-opts.sqfs")
 
 
 @pytest.fixture
 def lz4_sqfs() -> Iterator[BinaryIO]:
-    yield from open_file("data/lz4.sqfs")
+    yield from open_file("_data/lz4.sqfs")
 
 
 @pytest.fixture
 def lzma_sqfs() -> Iterator[BinaryIO]:
-    yield from open_file("data/lzma.sqfs")
+    yield from open_file("_data/lzma.sqfs")
 
 
 @pytest.fixture
 def lzo_sqfs() -> Iterator[BinaryIO]:
-    yield from open_file("data/lzo.sqfs")
+    yield from open_file("_data/lzo.sqfs")
 
 
 @pytest.fixture
 def xz_sqfs() -> Iterator[BinaryIO]:
-    yield from open_file("data/xz.sqfs")
+    yield from open_file("_data/xz.sqfs")
 
 
 @pytest.fixture
 def zstd_sqfs() -> Iterator[BinaryIO]:
-    yield from open_file("data/zstd.sqfs")
+    yield from open_file("_data/zstd.sqfs")

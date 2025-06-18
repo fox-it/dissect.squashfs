@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from io import BytesIO
+
 import pytest
 
 from dissect.squashfs.c_squashfs import c_squashfs
@@ -75,3 +77,20 @@ def test_squashfs(sqfs: str, compression_id: int, request: pytest.FixtureRequest
     sqfs = SquashFS(request.getfixturevalue(sqfs))
     assert sqfs.sb.compression == compression_id
     _verify_filesystem(sqfs)
+
+
+def test_squashfs_unsupported_bigendian_3_0() -> None:
+    """Test if we correctly detect a SquashFS 3.0 big-endian filesystem."""
+
+    # Random SquashFS version 3.0 big-endian header found on binwalk GitHub issue tracker.
+    buf = bytes.fromhex(
+        "73717368000000b60000002042010d364200bc844200339440016800000300006b0400104003004ae64f330000000000"
+        "001623000100000000001177ff8e0800000000000e303100000000000e3025000000000000000000000000000e234c00"
+    )
+
+    sb = c_squashfs.squashfs_super_block(buf)
+    assert sb.s_magic == c_squashfs.SQUASHFS_MAGIC_SWAP
+    assert sb.s_major == 0x300
+
+    with pytest.raises(NotImplementedError, match="Unsupported squashfs pre-4.0 big-endian filesystem"):
+        SquashFS(BytesIO(buf))

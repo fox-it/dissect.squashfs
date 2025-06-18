@@ -1,11 +1,12 @@
 coverage.xml
 .coverage
+build/
 dist/
 .eggs/
 *.egg-info/
 *.pyc
 __pycache__/
 .pytest_cache/
-tests/docs/api
-tests/docs/build
+tests/_docs/api
+tests/_docs/build
 .tox/
