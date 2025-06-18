@@ -34,7 +34,7 @@ class SquashFS:
         sb = c_squashfs.squashfs_super_block(fh)
         if sb.s_magic != c_squashfs.SQUASHFS_MAGIC:
             if sb.s_magic == c_squashfs.SQUASHFS_MAGIC_SWAP:
-                raise NotImplementedError("squashfs pre-4.0 big-endian filesystem is not supported")
+                raise NotImplementedError("Unsupported squashfs pre-4.0 big-endian filesystem")
 
             raise ValueError("Invalid squashfs superblock")
 
