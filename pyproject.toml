@@ -39,14 +39,6 @@ repository = "https://github.com/fox-it/dissect.squashfs"
 full = [
     "zstandard",
 ]
-lzo = [
-    # There are no Windows PyPy wheels available for python-lzo
-    # So we use a pure python fallback for it.
-    "python-lzo; platform_system != 'Windows' or platform_python_implementation != 'PyPy'",
-]
-lz4 = [
-    "lz4",
-]
 dev = [
     "dissect.squashfs[full]",
     "dissect.cstruct>=4.0.dev,<5.0.dev",
