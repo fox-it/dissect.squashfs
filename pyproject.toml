@@ -6,7 +6,7 @@ build-backend = "setuptools.build_meta"
 name = "dissect.squashfs"
 description = "A Dissect module implementing a parser for the SquashFS file system, commonly used in appliance or device firmware"
 readme = "README.md"
-requires-python = "~=3.9"
+requires-python = ">=3.10"
 license.text = "Affero General Public License v3"
 authors = [
   {name = "Dissect Team", email = "dissect@fox-it.com"}
