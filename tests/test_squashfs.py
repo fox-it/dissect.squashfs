@@ -92,5 +92,5 @@ def test_squashfs_unsupported_bigendian_3_0() -> None:
     assert sb.s_magic == c_squashfs.SQUASHFS_MAGIC_SWAP
     assert sb.s_major == 0x300
 
-    with pytest.raises(NotImplementedError, match="Unsupported squashfs pre-4.0 big-endian filesystem"):
+    with pytest.raises(NotImplementedError, match=r"Unsupported squashfs pre-4.0 big-endian filesystem"):
         SquashFS(BytesIO(buf))
