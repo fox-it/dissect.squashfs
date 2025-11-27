@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import importlib
+import sys
 
 from dissect.squashfs.c_squashfs import c_squashfs
 
@@ -81,7 +82,11 @@ class AvailableLZ4(Compression):
 
 
 class NativeZSTD(Compression):
-    module = "zstandard"
-
     def decompress(self, data: bytes, expected: int) -> bytes:
         return self._module.decompress(data)
+
+    @property
+    def module(self) -> str:
+        if sys.version_info >= (3, 14):
+            return "compression.zstd"
+        return "backports.zstd"
