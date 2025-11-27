@@ -82,11 +82,11 @@ class AvailableLZ4(Compression):
 
 
 class NativeZSTD(Compression):
-    def decompress(self, data: bytes, expected: int) -> bytes:
-        return self._module.decompress(data)
-
     @property
     def module(self) -> str:
         if sys.version_info >= (3, 14):
             return "compression.zstd"
         return "backports.zstd"
+
+    def decompress(self, data: bytes, expected: int) -> bytes:
+        return self._module.decompress(data)
