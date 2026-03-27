@@ -81,7 +81,6 @@ def test_squashfs(sqfs: str, compression_id: int, request: pytest.FixtureRequest
 
 def test_squashfs_unsupported_bigendian_3_0() -> None:
     """Test if we correctly detect a SquashFS 3.0 big-endian filesystem."""
-
     # Random SquashFS version 3.0 big-endian header found on binwalk GitHub issue tracker.
     buf = bytes.fromhex(
         "73717368000000b60000002042010d364200bc844200339440016800000300006b0400104003004ae64f330000000000"
